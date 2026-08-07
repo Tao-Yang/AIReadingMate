@@ -1,254 +1,240 @@
-/* 可爱 3D 卡通机器人 —— 鲜艳萌动的小绿芽熊猫精灵机器人，使用 Three.js 搭建。
+/* 可爱 3D 卡通机器人 —— 参考白头琥珀身小机器人形象，用 Three.js 基本体搭建。
  * 对外暴露 window.Robot：
  *   Robot.init(canvas)     初始化场景
  *   Robot.setState(state)  'idle' | 'thinking' | 'happy'
  */
 (function () {
   const COLORS = {
-    skin: 0xffe2d2,       // 温润凝脂肤色
-    hair: 0x1c1919,       // 乌黑发丝
-    dressRed: 0xbd4b4b,   // 优雅朱砂红
-    dressGreen: 0x4a7c59, // 沉静石绿/碧玉
-    gold: 0xd4af37,       // 簪子金辉
+    head: 0xeef1f5,      // 白色亮面脑袋
+    headDark: 0xd6dbe3,
+    amber: 0xf2a52b,     // 琥珀黄身体
+    amberDark: 0xd98a1c,
+    metal: 0xc2c8d2,     // 银色机械件
+    metalDark: 0x8b93a1,
+    glow: 0x33baff,      // 蓝色发光
+    ring: 0xf5a623,      // 眼睛橙圈
+    socket: 0x222a38,    // 眼窝深色
+    nose: 0xf5a623,
+    mouth: 0x39404d,
+    panda: 0x1c1c1c,     // 熊猫黑
+    pandaSoft: 0x4a4a4a,
     white: 0xffffff,
-    pink: 0xff9aa2,       // 娇羞腮红与落花
-    mouth: 0x8a2323,      // 绛唇色
+    red: 0xff5a5a,
   };
 
   let renderer, scene, camera, root;
-  let head, eyeL, eyeR, eyeHi = [], happyEyes, mouth, blinkGroup;
-  let leftArm, rightArm, sleeves = [];
-  let hairpinL, hairpinR, petals = [];
+  let head, eyeL, eyeR, leftArm, rightArm, antennaBall;
+  let glowParts = [], sparkles = [];
   let clock;
   let state = "idle";
   let blinkTimer = 0;
-  let nextBlink = 2.5 + Math.random() * 3;
+  let nextBlink = 2 + Math.random() * 3;
   let stateUntil = 0;
 
   function sphere(r, color, opts = {}) {
     const mat = new THREE.MeshStandardMaterial({
       color,
-      roughness: opts.roughness ?? 0.45,
-      metalness: opts.metalness ?? 0.02,
+      roughness: opts.roughness ?? 0.4,
+      metalness: opts.metalness ?? 0.05,
       emissive: opts.emissive ?? 0x000000,
       emissiveIntensity: opts.emissiveIntensity ?? 0,
-      transparent: opts.transparent ?? false,
-      opacity: opts.opacity ?? 1,
     });
-    return new THREE.Mesh(new THREE.SphereGeometry(r, 28, 28), mat);
+    return new THREE.Mesh(new THREE.SphereGeometry(r, 32, 32), mat);
   }
 
-  function cyl(rTop, rBot, h, color, opts = {}) {
+  function cyl(rTop, rBot, h, color, metalness) {
     return new THREE.Mesh(
-      new THREE.CylinderGeometry(rTop, rBot, h, 18),
-      new THREE.MeshStandardMaterial({
-        color, roughness: opts.roughness ?? 0.4, metalness: opts.metalness ?? 0.05
-      })
+      new THREE.CylinderGeometry(rTop, rBot, h, 20),
+      new THREE.MeshStandardMaterial({ color, roughness: 0.35, metalness: metalness ?? 0.7 })
     );
   }
 
   function torus(r, tube, color, opts = {}) {
     return new THREE.Mesh(
-      new THREE.TorusGeometry(r, tube, 12, 32),
+      new THREE.TorusGeometry(r, tube, 16, 40),
       new THREE.MeshStandardMaterial({
-        color, roughness: 0.5, metalness: opts.metalness ?? 0.05
+        color, roughness: opts.roughness ?? 0.4, metalness: opts.metalness ?? 0.3,
+        emissive: opts.emissive ?? 0x000000, emissiveIntensity: opts.emissiveIntensity ?? 0,
       })
     );
   }
 
-  function buildPetal() {
-    // 绛雪落英（小花瓣形：扁平球）
-    const p = sphere(0.12, COLORS.pink, { roughness: 0.6 });
-    p.scale.set(1.0, 0.4, 0.7);
-    return p;
+  function glowDisc(r, color) {
+    const m = new THREE.Mesh(
+      new THREE.CylinderGeometry(r, r, 0.06, 28),
+      new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.9, roughness: 0.2 })
+    );
+    m.rotation.x = Math.PI / 2;
+    return m;
+  }
+
+  function buildEye(sign) {
+    const g = new THREE.Group();
+    // 熊猫黑眼圈（斜向水滴形）
+    const patch = sphere(0.36, COLORS.panda, { roughness: 0.5 });
+    patch.scale.set(0.66, 0.98, 0.3);
+    patch.rotation.z = 0.45 * sign;
+    patch.position.z = -0.04;
+    // 蓝色发光眼珠
+    const iris = sphere(0.17, COLORS.glow, { emissive: COLORS.glow, emissiveIntensity: 0.85, roughness: 0.2 });
+    iris.scale.set(1, 1, 0.7); iris.position.z = 0.12;
+    glowParts.push(iris);
+    // 高光两点
+    const hi1 = sphere(0.06, COLORS.white, { emissive: COLORS.white, emissiveIntensity: 0.8, roughness: 0.1 });
+    hi1.position.set(-0.06 * sign, 0.08, 0.24);
+    const hi2 = sphere(0.03, COLORS.white, { emissive: COLORS.white, emissiveIntensity: 0.8, roughness: 0.1 });
+    hi2.position.set(0.07 * sign, -0.06, 0.24);
+    g.add(patch, iris, hi1, hi2);
+    return g;
+  }
+
+  function buildArm(sign) {
+    // sign: -1 左, +1 右。整组以肩为轴，便于摆动。
+    const g = new THREE.Group();
+    g.position.set(0.82 * sign, -0.5, 0.15);
+    // 肩部弹簧
+    for (let i = 0; i < 3; i++) {
+      const coil = torus(0.08, 0.03, COLORS.metalDark, { metalness: 0.8 });
+      coil.rotation.y = Math.PI / 2;
+      coil.position.x = 0.06 * sign * i;
+      g.add(coil);
+    }
+    // 前臂
+    const fore = cyl(0.06, 0.07, 0.5, COLORS.metal, 0.8);
+    fore.position.set(0.28 * sign, -0.18, 0);
+    fore.rotation.z = 0.5 * sign;
+    g.add(fore);
+    // 爪子
+    const hand = sphere(0.12, COLORS.metalDark, { metalness: 0.8, roughness: 0.3 });
+    hand.position.set(0.42 * sign, -0.38, 0);
+    g.add(hand);
+    for (let i = 0; i < 2; i++) {
+      const claw = new THREE.Mesh(
+        new THREE.ConeGeometry(0.045, 0.18, 12),
+        new THREE.MeshStandardMaterial({ color: COLORS.metal, metalness: 0.8, roughness: 0.3 })
+      );
+      claw.position.set(0.42 * sign + (i ? 0.07 : -0.07) * sign, -0.5, 0.05);
+      claw.rotation.z = (i ? -0.3 : 0.3) * sign;
+      g.add(claw);
+    }
+    return g;
+  }
+
+  function buildFoot(sign) {
+    const g = new THREE.Group();
+    // 弹簧腿
+    const spring = cyl(0.05, 0.05, 0.4, COLORS.metalDark, 0.7);
+    spring.position.set(0.32 * sign, -1.35, 0.05);
+    g.add(spring);
+    // 白色圆顶靴
+    const boot = sphere(0.36, COLORS.head, { roughness: 0.35 });
+    boot.scale.set(1, 0.6, 1.25);
+    boot.position.set(0.36 * sign, -1.68, 0.1);
+    g.add(boot);
+    const rim = torus(0.34, 0.05, COLORS.metalDark, { metalness: 0.6 });
+    rim.rotation.x = Math.PI / 2;
+    rim.position.set(0.36 * sign, -1.62, 0.1);
+    rim.scale.set(1, 1.25, 1);
+    g.add(rim);
+    if (sign < 0) {
+      const dot = sphere(0.04, COLORS.red, { emissive: COLORS.red, emissiveIntensity: 0.6 });
+      dot.position.set(0.36 * sign, -1.6, 0.62);
+      g.add(dot);
+    }
+    return g;
   }
 
   function buildRobot() {
     root = new THREE.Group();
 
-    // ---- 1. 下裙（碧绿百褶长裙）----
-    const skirt = cyl(0.3, 0.78, 1.6, COLORS.dressGreen, { roughness: 0.5 });
-    skirt.position.y = -0.7;
-    root.add(skirt);
-
-    // 裙摆饰金边
-    const goldTrim = torus(0.76, 0.04, COLORS.gold, { metalness: 0.7 });
-    goldTrim.rotation.x = Math.PI / 2;
-    goldTrim.position.y = -1.48;
-    root.add(goldTrim);
-
-    // ---- 2. 上衫（朱砂襦裙外衣）----
-    const chest = cyl(0.38, 0.3, 0.55, COLORS.dressRed, { roughness: 0.45 });
-    chest.position.y = 0.22;
-    root.add(chest);
-
-    // 交领右衽领口
-    const collar = torus(0.34, 0.04, COLORS.white);
-    collar.rotation.x = Math.PI / 2.3;
-    collar.position.set(0, 0.38, 0.1);
+    // ---- 身体（琥珀黄）----
+    const body = sphere(0.82, COLORS.amber, { roughness: 0.35 });
+    body.scale.set(1.05, 1.0, 0.92);
+    body.position.y = -0.62;
+    root.add(body);
+    // 颈部银环
+    const collar = torus(0.52, 0.09, COLORS.metal, { metalness: 0.8 });
+    collar.rotation.x = Math.PI / 2;
+    collar.position.y = -0.02;
+    collar.scale.set(1, 1, 0.6);
     root.add(collar);
+    // 肚脐蓝色发光按钮
+    const bellyRing = torus(0.2, 0.05, COLORS.metalDark, { metalness: 0.7 });
+    bellyRing.position.set(0, -0.62, 0.74);
+    const belly = glowDisc(0.16, COLORS.glow);
+    belly.position.set(0, -0.62, 0.76);
+    glowParts.push(belly);
+    root.add(bellyRing, belly);
+    // 胸口小螺栓
+    [-0.3, 0.3].forEach((x) => {
+      const bolt = sphere(0.05, COLORS.metalDark, { metalness: 0.8 });
+      bolt.position.set(x, -0.18, 0.66);
+      root.add(bolt);
+    });
 
-    // ---- 3. 头部（温润娇憨）----
+    // ---- 头（琥珀黄圆顶 + 熊猫面孔）----
     head = new THREE.Group();
-    head.position.y = 0.98;
-    const skull = sphere(0.85, COLORS.skin, { roughness: 0.5 });
-    head.add(skull);
+    head.position.y = 0.9;
+    const dome = sphere(1.1, COLORS.amber, { roughness: 0.3 });
+    dome.scale.set(1.18, 1.04, 1.08);
+    head.add(dome);
 
-    // ---- 4. 古典青丝发髻 ----
-    const hairBack = sphere(0.9, COLORS.hair, { roughness: 0.6 });
-    hairBack.scale.set(1.04, 1.0, 0.94);
-    hairBack.position.set(0, 0.1, -0.1);
-    head.add(hairBack);
-
-    // 额前齐眉弯刘海
-    const bangs = sphere(0.86, COLORS.hair, { roughness: 0.6 });
-    bangs.scale.set(1.02, 0.5, 0.4);
-    bangs.position.set(0, 0.48, 0.66);
-    bangs.rotation.x = -0.3;
-    head.add(bangs);
-
-    // 两侧飞鬓
+    // 熊猫黑耳朵
     [-1, 1].forEach((sign) => {
-      const lock = sphere(0.18, COLORS.hair, { roughness: 0.6 });
-      lock.scale.set(0.8, 1.8, 0.6);
-      lock.position.set(0.82 * sign, -0.05, 0.3);
-      head.add(lock);
+      const ear = sphere(0.34, COLORS.panda, { roughness: 0.5 });
+      ear.scale.set(1, 1, 0.5);
+      ear.position.set(0.8 * sign, 0.92, -0.1);
+      head.add(ear);
+      const inner = sphere(0.17, COLORS.pandaSoft, { roughness: 0.6 });
+      inner.scale.set(1, 1, 0.5);
+      inner.position.set(0.8 * sign, 0.92, 0.06);
+      head.add(inner);
     });
 
-    // 高耸云髻（典雅发包）
-    const bun = sphere(0.42, COLORS.hair, { roughness: 0.6 });
-    bun.scale.set(1.2, 0.8, 0.8);
-    bun.position.set(0, 0.96, -0.2);
-    head.add(bun);
+    // 眼睛（含熊猫黑眼圈）
+    eyeL = buildEye(-1); eyeL.position.set(-0.46, 0.08, 0.86);
+    eyeR = buildEye(1); eyeR.position.set(0.46, 0.08, 0.86);
+    head.add(eyeL, eyeR);
 
-    // 金钗玉簪（步摇）
-    [-1, 1].forEach((sign) => {
-      const pin = new THREE.Group();
-      pin.position.set(0.35 * sign, 1.0, -0.1);
-      pin.rotation.z = -0.5 * sign;
-      pin.rotation.y = 0.2 * sign;
+    // 熊猫黑鼻子
+    const nose = sphere(0.12, COLORS.panda, { roughness: 0.35 });
+    nose.scale.set(1.25, 0.8, 0.7);
+    nose.position.set(0, -0.26, 1.04);
+    head.add(nose);
 
-      const stick = cyl(0.02, 0.02, 0.5, COLORS.gold, { metalness: 0.8 });
-      stick.rotation.z = Math.PI / 2;
-      stick.position.x = 0.2 * sign;
-
-      const bead = sphere(0.08, COLORS.gold, { metalness: 0.8 });
-      bead.position.x = 0.45 * sign;
-      pin.add(stick, bead);
-
-      // 垂吊流苏步摇
-      const fringe = cyl(0.01, 0.01, 0.22, COLORS.pink);
-      fringe.position.set(0.45 * sign, -0.11, 0);
-      pin.add(fringe);
-
-      head.add(pin);
-    });
-
-    // ---- 5. 盈润桃花面 ----
-    // 恬静凤眼
-    blinkGroup = new THREE.Group();
-    const eyeGeo = new THREE.SphereGeometry(0.15, 24, 24);
-    const eyeMat = new THREE.MeshStandardMaterial({ color: 0x1f1919, roughness: 0.1 });
-    eyeL = new THREE.Mesh(eyeGeo, eyeMat);
-    eyeL.position.set(-0.35, 0.06, 0.74);
-    eyeL.scale.set(0.9, 1.0, 0.55);
-    eyeR = eyeL.clone();
-    eyeR.position.x = 0.35;
-    blinkGroup.add(eyeL, eyeR);
-
-    // 水波高光（两点盈盈秋水）
-    eyeHi = [];
-    [[-0.39, 0.12], [0.31, 0.12]].forEach(([x, y]) => {
-      const hi = sphere(0.05, COLORS.white, { roughness: 0.1 });
-      hi.position.set(x, y, 0.86);
-      blinkGroup.add(hi);
-      eyeHi.push(hi);
-    });
-    head.add(blinkGroup);
-
-    // 眯眼弯蛾眉 ^_^（笑颜，默认隐藏）
-    happyEyes = new THREE.Group();
-    [-0.35, 0.35].forEach((x) => {
-      const brow = torus(0.15, 0.026, 0x1f1919);
-      brow.position.set(x, 0.06, 0.76);
-      brow.rotation.x = Math.PI / 2.3;
-      happyEyes.add(brow);
-    });
-    happyEyes.visible = false;
-    head.add(happyEyes);
-
-    // 点绛唇
-    mouth = torus(0.09, 0.022, COLORS.mouth);
+    // 微笑小嘴
+    const mouth = torus(0.13, 0.03, COLORS.panda, {});
     mouth.rotation.z = Math.PI;
-    mouth.position.set(0, -0.3, 0.78);
-    mouth.scale.set(1, 0.6, 1);
+    mouth.position.set(0, -0.52, 0.98);
+    mouth.scale.set(1, 0.7, 1);
     head.add(mouth);
-
-    // 人面桃花相映红（双颊腮红）
-    [-1, 1].forEach((sign) => {
-      const blush = sphere(0.13, COLORS.pink, { transparent: true, opacity: 0.55, roughness: 1 });
-      blush.scale.set(1.0, 0.65, 0.3);
-      blush.position.set(0.55 * sign, -0.09, 0.75);
-      head.add(blush);
-    });
 
     root.add(head);
 
-    // ---- 6. 飘逸大袖（飞天长袖袍，以肩为轴）----
-    // 左臂组
-    leftArm = new THREE.Group();
-    leftArm.position.set(-0.52, 0.36, 0);
-    const sleeveL = cyl(0.14, 0.38, 0.8, COLORS.dressRed, { roughness: 0.5 });
-    sleeveL.rotation.z = -0.5;
-    sleeveL.position.set(-0.2, -0.26, 0);
-    leftArm.add(sleeveL);
-    const handL = sphere(0.09, COLORS.skin);
-    handL.position.set(-0.38, -0.58, 0.02);
-    leftArm.add(handL);
-    root.add(leftArm);
+    // ---- 四肢 ----
+    leftArm = buildArm(-1);
+    rightArm = buildArm(1);
+    root.add(leftArm, rightArm);
+    root.add(buildFoot(-1), buildFoot(1));
 
-    // 右臂组
-    rightArm = new THREE.Group();
-    rightArm.position.set(0.52, 0.36, 0);
-    const sleeveR = cyl(0.14, 0.38, 0.8, COLORS.dressRed, { roughness: 0.5 });
-    sleeveR.rotation.z = 0.5;
-    sleeveR.position.set(0.2, -0.26, 0);
-    rightArm.add(sleeveR);
-    const handR = sphere(0.09, COLORS.skin);
-    handR.position.set(0.38, -0.58, 0.02);
-    rightArm.add(handR);
-    root.add(rightArm);
-
-    // 仙风带环（萦绕在后方的披帛披纱，极富流动感）
-    const ribbon = torus(0.9, 0.045, COLORS.white, { metalness: 0.1 });
-    ribbon.scale.set(1.2, 0.58, 1.4);
-    ribbon.position.set(0, -0.14, -0.22);
-    ribbon.rotation.x = 0.12;
-    root.add(ribbon);
-
-    // ---- 7. 开心时飞舞的落英花瓣 ----
-    petals = [];
-    for (let i = 0; i < 5; i++) {
-      const p = buildPetal();
-      p.visible = false;
-      root.add(p);
-      petals.push(p);
+    // 开心时上升的蓝色小星点（默认隐藏）
+    sparkles = [];
+    for (let i = 0; i < 4; i++) {
+      const s = sphere(0.06, COLORS.glow, { emissive: COLORS.glow, emissiveIntensity: 0.9 });
+      s.visible = false;
+      root.add(s);
+      sparkles.push(s);
     }
 
     scene.add(root);
   }
 
   function onResize(canvas) {
-    const w = canvas.clientWidth || 210;
-    const h = canvas.clientHeight || 210;
+    const w = canvas.clientWidth || 200;
+    const h = canvas.clientHeight || 200;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-  }
-
-  function setHappyEyes(on) {
-    happyEyes.visible = on;
-    blinkGroup.visible = !on;
   }
 
   function animate() {
@@ -256,64 +242,51 @@
     const dt = clock.getDelta();
     const t = clock.elapsedTime;
 
-    // 温婉御风漂浮（比机器人更慢、更温柔）
-    root.position.y = Math.sin(t * 1.2) * 0.06;
-    // 螓首轻转（温柔地微偏头、颔首俯看）
-    const targetRotY = state === "thinking" ? Math.sin(t * 5) * 0.08 : Math.sin(t * 0.6) * 0.14 - 0.08;
+    // 漂浮 + 摆头
+    root.position.y = Math.sin(t * 1.7) * 0.09;
+    const targetRotY = state === "thinking" ? Math.sin(t * 6) * 0.14 : Math.sin(t * 0.8) * 0.2 - 0.05;
     head.rotation.y += (targetRotY - head.rotation.y) * 0.08;
-    head.rotation.z = Math.sin(t * 0.8) * 0.03 + (state === "thinking" ? 0.08 : 0);
+    head.rotation.z = Math.sin(t * 1.2) * 0.05;
 
-    // 流苏步摇随风款款摇晃
-    head.children.forEach((c) => {
-      if (c.rotation && c.position.y > 0.9) {
-        c.rotation.z += Math.sin(t * 4) * 0.005;
-      }
-    });
+    // 蓝光呼吸
+    const pulse = state === "thinking" ? 0.6 + Math.abs(Math.sin(t * 8)) * 0.8
+      : state === "happy" ? 1.1
+      : 0.7 + Math.sin(t * 2) * 0.25;
+    glowParts.forEach((m) => (m.material.emissiveIntensity = pulse));
 
-    // 眨眼（文静徐缓）
+    // 眨眼 / 眯眼
     blinkTimer += dt;
     let eyeScaleY = 1;
     if (state === "happy") {
-      eyeScaleY = 0.35;
+      eyeScaleY = 0.35;                              // 开心眯眼
     } else if (blinkTimer > nextBlink) {
-      const p = (blinkTimer - nextBlink) / 0.18;
-      eyeScaleY = p < 1 ? 1 - Math.sin(p * Math.PI) * 0.95 : 1;
-      if (p >= 1) { blinkTimer = 0; nextBlink = 3 + Math.random() * 4; }
+      const p = (blinkTimer - nextBlink) / 0.14;
+      eyeScaleY = p < 1 ? 1 - Math.sin(p * Math.PI) * 0.9 : 1;
+      if (p >= 1) { blinkTimer = 0; nextBlink = 2 + Math.random() * 3; }
     }
-    blinkGroup.scale.y = eyeScaleY;
+    eyeL.scale.y = eyeScaleY;
+    eyeR.scale.y = eyeScaleY;
 
     if (state === "thinking") {
-      setHappyEyes(false);
-      // 抚面托腮：左袖挽起，温柔抚口，掩面娇羞
-      leftArm.rotation.set(-0.3, 0.4, 1.28);
-      rightArm.rotation.set(0, 0, -0.4);
-      petals.forEach((p) => (p.visible = false));
+      leftArm.rotation.z = Math.sin(t * 7) * 0.5;    // 挥动手臂
+      rightArm.rotation.z = -Math.sin(t * 7) * 0.5;
+      sparkles.forEach((s) => (s.visible = false));
     } else if (state === "happy") {
-      setHappyEyes(true);
-      const bounce = Math.abs(Math.sin(t * 10));
-      root.position.y += bounce * 0.04;              // 文静轻跃
-      leftArm.rotation.set(-0.1, 0, 0.8 + bounce * 0.3); // 挥舞仙袖
-      rightArm.rotation.set(-0.1, 0, -0.8 - bounce * 0.3);
-
-      // 绛雪飘落（樱粉桃花瓣围绕在身边翩跹起舞）
-      petals.forEach((p, i) => {
-        p.visible = true;
-        const life = (t * 0.8 + i * 0.2) % 1;
-        p.position.set(
-          Math.sin(t * 3.5 + i) * 0.6 + (i - 2) * 0.15,
-          0.8 - life * 1.6,
-          0.5 + Math.cos(t * 3.5 + i) * 0.3
-        );
-        p.rotation.set(t * 2 + i, t * 1.5, t * i);
-        p.scale.setScalar(0.12 * (1 - life * 0.5));
+      const bounce = Math.abs(Math.sin(t * 11));
+      root.position.y += bounce * 0.08;              // 蹦跳
+      leftArm.rotation.z = 0.9 + bounce * 0.4;       // 举手欢呼
+      rightArm.rotation.z = -0.9 - bounce * 0.4;
+      sparkles.forEach((s, i) => {                   // 冒蓝色星点
+        s.visible = true;
+        const life = (t * 0.9 + i * 0.25) % 1;
+        s.position.set((i - 1.5) * 0.4, 0.9 + life * 1.5, 0.5);
+        s.scale.setScalar(1 - life);
       });
       if (t > stateUntil) setState("idle");
     } else {
-      setHappyEyes(false);
-      // idle 状态：双手在身前轻交，端庄淑雅
-      leftArm.rotation.set(-0.1, 0.2, 0.5 + Math.sin(t * 1.2) * 0.04);
-      rightArm.rotation.set(-0.1, -0.2, -0.5 - Math.sin(t * 1.2) * 0.04);
-      petals.forEach((p) => (p.visible = false));
+      leftArm.rotation.z += (0 - leftArm.rotation.z) * 0.1;
+      rightArm.rotation.z += (0 - rightArm.rotation.z) * 0.1;
+      sparkles.forEach((s) => (s.visible = false));
     }
 
     renderer.render(scene, camera);
@@ -325,16 +298,16 @@
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
       scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
-      camera.position.set(0, 0.45, 7.8);
-      camera.lookAt(0, 0.1, 0);
+      camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+      camera.position.set(0, 0.35, 7.8);
+      camera.lookAt(0, 0.15, 0);
 
-      const amb = new THREE.AmbientLight(0xffffff, 0.85);
-      const key = new THREE.DirectionalLight(0xfff8e8, 1.0); // 暖日柔光
-      key.position.set(3, 4, 3);
-      const rim = new THREE.DirectionalLight(0xffdfcb, 0.5); // 桃花腮边缘返光
+      const amb = new THREE.AmbientLight(0xffffff, 0.75);
+      const key = new THREE.DirectionalLight(0xffffff, 1.0);
+      key.position.set(2, 3, 4);
+      const rim = new THREE.DirectionalLight(0x9fd0ff, 0.6);
       rim.position.set(-3, 1, -2);
-      const fill = new THREE.DirectionalLight(0xdbe9ff, 0.28); // 远山翠微倒影底光
+      const fill = new THREE.DirectionalLight(0xffe6b0, 0.35);
       fill.position.set(0, -2, 3);
       scene.add(amb, key, rim, fill);
 
@@ -346,7 +319,7 @@
     },
     setState(next) {
       state = next;
-      if (next === "happy") stateUntil = clock.elapsedTime + 1.8;
+      if (next === "happy") stateUntil = clock.elapsedTime + 1.6;
     },
   };
 
