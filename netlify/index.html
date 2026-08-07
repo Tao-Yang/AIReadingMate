@@ -67,8 +67,17 @@
     line-height: 1.5;
     z-index: 3;
   }
-  /* 熊猫机器人徽标 */
-  .emblem { width: 118px; height: 118px; margin: 4px auto 10px; display: block; }
+  /* 伴读头像 */
+  .emblem {
+    width: 118px;
+    height: 118px;
+    margin: 4px auto 10px;
+    display: block;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(251, 231, 207, 0.85);
+    box-shadow: 0 8px 22px rgba(40, 60, 30, 0.3);
+  }
   h1 {
     font-family: "Ma Shan Zheng", "Noto Serif SC", cursive;
     font-size: clamp(32px, 6.6vw, 46px);
@@ -78,6 +87,11 @@
     color: var(--ink);
     font-weight: 400;
     text-shadow: 0 2px 0 rgba(255, 255, 255, 0.5), 0 8px 22px rgba(40, 60, 30, 0.28);
+  }
+  h1 .ai {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 700;
+    letter-spacing: 2px;
   }
   .subtitle {
     font-size: 16px;
@@ -190,27 +204,10 @@
   <main class="card">
     <div class="stamp">划词即注 熊猫伴读</div>
 
-    <!-- 熊猫机器人徽标 -->
-    <svg class="emblem" viewBox="0 0 120 120" role="img" aria-label="熊猫机器人">
-      <ellipse cx="60" cy="112" rx="30" ry="5" fill="rgba(60,50,20,0.14)" />
-      <circle cx="34" cy="30" r="13" fill="#1c1c1c" />
-      <circle cx="86" cy="30" r="13" fill="#1c1c1c" />
-      <circle cx="34" cy="30" r="6" fill="#4a4a4a" />
-      <circle cx="86" cy="30" r="6" fill="#4a4a4a" />
-      <circle cx="60" cy="46" r="34" fill="#f2a52b" />
-      <ellipse cx="47" cy="44" rx="9" ry="12" fill="#1c1c1c" transform="rotate(-16 47 44)" />
-      <ellipse cx="73" cy="44" rx="9" ry="12" fill="#1c1c1c" transform="rotate(16 73 44)" />
-      <circle cx="47" cy="45" r="4.5" fill="#33baff" />
-      <circle cx="73" cy="45" r="4.5" fill="#33baff" />
-      <circle cx="45.5" cy="43.5" r="1.6" fill="#fff" />
-      <circle cx="71.5" cy="43.5" r="1.6" fill="#fff" />
-      <ellipse cx="60" cy="55" rx="4" ry="2.6" fill="#1c1c1c" />
-      <path d="M54 60 Q60 65 66 60" stroke="#1c1c1c" stroke-width="2" fill="none" stroke-linecap="round" />
-      <rect x="44" y="82" width="32" height="26" rx="12" fill="#f2a52b" />
-      <circle cx="60" cy="95" r="6" fill="#33baff" />
-    </svg>
+    <!-- 伴读头像 -->
+    <img class="emblem" src="avatar.jpg" alt="阅读伴侣" />
 
-    <h1>A I 阅 读 伴 侣</h1>
+    <h1><span class="ai">AI</span> 阅 读 伴 侣</h1>
     <div class="subtitle">划词即注 · 熊猫伴读</div>
 
     <button id="enter" class="cta" type="button">进 入 应 用</button>

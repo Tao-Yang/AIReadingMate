@@ -49,15 +49,14 @@
     <div class="bubble-note" id="bubble-note"></div>
   </div>
 
-  <!-- 可爱 3D 机器人形象 -->
+  <!-- 真人伴读形象 -->
   <div id="robot-stage" class="robot-stage" title="你的阅读伴侣">
-    <canvas id="robot-canvas"></canvas>
+    <img id="robot-avatar" class="robot-avatar" src="avatar.jpg" alt="阅读伴侣" />
     <div id="robot-status" class="robot-status">Hi～划个词试试</div>
   </div>
 
-  <!-- 依赖：PDF.js（渲染 + 文本层）与 Three.js（3D 机器人） -->
+  <!-- 依赖：PDF.js（渲染 + 文本层） -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="robot.js"></script>
   <script src="app.js"></script>
 </body>

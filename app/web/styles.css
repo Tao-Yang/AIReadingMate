@@ -214,22 +214,47 @@ body {
   color: var(--muted);
 }
 
-/* 3D 机器人舞台 */
+/* 真人伴读形象 */
 .robot-stage {
   position: fixed;
   right: 22px;
   bottom: 22px;
   z-index: 50;
-  width: 210px;
-  height: 228px;
+  width: 176px;
+  height: 250px;
   pointer-events: none;
 }
-#robot-canvas {
-  width: 210px;
-  height: 210px;
+.robot-avatar {
+  width: 176px;
+  height: 232px;
+  object-fit: cover;
+  object-position: center top;
   display: block;
-  filter: drop-shadow(0 14px 20px rgba(40, 60, 30, 0.28));
+  border-radius: 20px;
+  border: 3px solid rgba(251, 231, 207, 0.85);
+  box-shadow: 0 16px 30px rgba(40, 60, 30, 0.34);
+  animation: rc-float 4s ease-in-out infinite;
+  transform-origin: center bottom;
 }
+.robot-avatar.is-thinking {
+  animation: rc-think 1.1s ease-in-out infinite;
+}
+.robot-avatar.is-happy {
+  animation: rc-happy 0.5s ease-in-out infinite;
+}
+@keyframes rc-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(-0.6deg); }
+}
+@keyframes rc-think {
+  0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+  50% { transform: translateY(-3px) rotate(1.5deg); }
+}
+@keyframes rc-happy {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-12px) scale(1.03); }
+}
+
 .robot-status {
   position: absolute;
   top: -6px;

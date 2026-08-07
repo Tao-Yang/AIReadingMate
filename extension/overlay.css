@@ -1,0 +1,113 @@
+/* 阅读伴侣浮层样式（注入到 Shadow DOM，避免污染宿主页面）。水墨宣纸配色。 */
+:host { all: initial; }
+
+.rc-panel {
+  font-family: "Noto Serif SC", "Microsoft YaHei", system-ui, serif;
+  width: 260px;
+  background: rgba(251, 247, 238, 0.96);
+  border: 1px solid rgba(120, 110, 80, 0.35);
+  border-radius: 16px;
+  box-shadow: 0 16px 44px rgba(40, 60, 30, 0.32);
+  overflow: hidden;
+  backdrop-filter: blur(4px);
+  color: #33402c;
+}
+
+.rc-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(46, 107, 69, 0.12);
+  border-bottom: 1px solid rgba(120, 110, 80, 0.22);
+}
+.rc-title {
+  font-size: 15px;
+  letter-spacing: 3px;
+  color: #2e6b45;
+  font-weight: 600;
+}
+.rc-close {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  color: #7a7259;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.rc-close:hover { color: #a5352f; }
+
+.rc-stage { position: relative; height: 176px; }
+.rc-canvas {
+  width: 100%;
+  height: 176px;
+  display: block;
+  filter: drop-shadow(0 12px 16px rgba(40, 60, 30, 0.28));
+}
+.rc-status {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  max-width: 92%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: rgba(255, 253, 246, 0.96);
+  color: #33402c;
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(120, 110, 80, 0.3);
+  box-shadow: 0 4px 12px rgba(40, 60, 30, 0.16);
+}
+
+.rc-bubble {
+  margin: 0 12px 10px;
+  padding: 10px 12px;
+  background: rgba(255, 253, 246, 0.98);
+  border: 1px solid rgba(120, 110, 80, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(40, 60, 30, 0.18);
+  transition: opacity 0.15s ease;
+}
+.rc-bubble.rc-hidden { display: none; }
+.rc-term { font-weight: 700; font-size: 15px; color: #a5352f; margin-bottom: 4px; word-break: break-word; }
+.rc-body { font-size: 14px; line-height: 1.6; color: #24311d; }
+.rc-note { margin-top: 6px; font-size: 12px; color: #7a7259; }
+.rc-note:empty { display: none; }
+.rc-bubble.rc-loading .rc-body::after { content: "思考中…"; color: #7a7259; }
+
+.rc-tools { padding: 0 12px 12px; }
+.rc-input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 46px;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 13px;
+  color: #33402c;
+  padding: 8px 10px;
+  border: 1px solid rgba(120, 110, 80, 0.3);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.7);
+  outline: none;
+}
+.rc-input:focus { border-color: #2e6b45; }
+.rc-row { display: flex; gap: 8px; margin-top: 8px; }
+.rc-btn {
+  flex: 1;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: 1px;
+  border: 1px solid rgba(120, 110, 80, 0.3);
+  border-radius: 10px;
+  background: rgba(255, 253, 246, 0.9);
+  color: #33402c;
+  cursor: pointer;
+}
+.rc-btn:hover { background: #fbe7cf; }
+.rc-primary { background: #a5352f; color: #fbe7cf; border-color: #a5352f; }
+.rc-primary:hover { background: #8e2b26; }

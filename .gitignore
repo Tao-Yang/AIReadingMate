@@ -9,3 +9,5 @@ app/data/ecdict.csv
 # 系统/编辑器
 .DS_Store
 .vscode/
+
+extension.7z
