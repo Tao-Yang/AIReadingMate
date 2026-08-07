@@ -1,0 +1,9 @@
+# Netlify 部署配置：只发布静态落地页目录 netlify/
+[build]
+  publish = "netlify"
+  command = ""
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
