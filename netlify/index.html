@@ -24,12 +24,11 @@
   body {
     font-family: "Noto Serif SC", serif;
     color: var(--ink-soft);
-    /* 纯 CSS 宣纸底色：多层柔和渐变叠出米黄质感，无需外部图片。 */
+    /* 采用同款水墨背景图 + 宣纸色明暗渐变，完美契合 */
     background:
-      radial-gradient(1200px 820px at 18% 8%, rgba(255, 255, 255, 0.4), transparent 60%),
-      radial-gradient(900px 700px at 88% 92%, rgba(180, 168, 132, 0.35), transparent 62%),
-      linear-gradient(160deg, rgba(239, 233, 214, 0.92), rgba(222, 214, 187, 0.96)),
-      var(--parchment-b);
+      linear-gradient(160deg, rgba(239, 233, 214, 0.42), rgba(222, 214, 187, 0.55)),
+      url("background.png") center center / cover no-repeat fixed;
+    background-color: var(--parchment-b);
     background-attachment: fixed;
     min-height: 100%;
     display: flex;
