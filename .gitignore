@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# ECDICT 词典体积大（约 65MB），按需下载，不入库
+app/data/ecdict.csv
+
+# 系统/编辑器
+.DS_Store
+.vscode/

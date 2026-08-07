@@ -1,0 +1,199 @@
+:root {
+  --bg: #eef2f7;
+  --panel: #ffffff;
+  --ink: #1f2937;
+  --muted: #6b7280;
+  --accent: #5b8def;
+  --accent-soft: #e7f0ff;
+  --shadow: 0 10px 30px rgba(31, 41, 55, 0.14);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+/* 顶栏 */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #e5e9f0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 18px;
+}
+.brand small { color: var(--muted); font-weight: 500; font-size: 12px; }
+.brand-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #8fb4ff, var(--accent));
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.controls { display: flex; align-items: center; gap: 12px; }
+
+.file-btn {
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(91, 141, 239, 0.35);
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
+}
+.file-btn:hover { transform: translateY(-1px); }
+
+.nav-btn {
+  width: 34px; height: 34px;
+  border: 1px solid #d7dded;
+  background: #fff;
+  border-radius: 8px;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--ink);
+}
+.nav-btn:hover { background: var(--accent-soft); }
+.page-indicator { min-width: 74px; text-align: center; color: var(--muted); font-size: 14px; }
+
+.zoom { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.zoom input { accent-color: var(--accent); }
+
+/* 阅读区 */
+.viewer {
+  padding: 28px 16px 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.page-wrap {
+  position: relative;
+  background: #fff;
+  box-shadow: var(--shadow);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.page-wrap canvas { display: block; }
+
+/* PDF.js 文本层：透明覆盖，用于选择 */
+.textLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 1;
+  line-height: 1;
+}
+.textLayer span, .textLayer br {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+.textLayer ::selection { background: rgba(91, 141, 239, 0.35); }
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+.placeholder-card {
+  text-align: center;
+  padding: 40px 48px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+.placeholder-card h1 { margin: 0 0 12px; font-size: 26px; }
+.placeholder-card p { margin: 0; color: var(--muted); line-height: 1.8; }
+
+/* 注释气泡 */
+.bubble {
+  position: fixed;
+  z-index: 60;
+  max-width: 280px;
+  padding: 12px 14px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 12px 34px rgba(31, 41, 55, 0.22);
+  border: 1px solid #eef1f7;
+  transform: translate(-50%, calc(-100% - 14px));
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.bubble.hidden { opacity: 0; pointer-events: none; transform: translate(-50%, calc(-100% - 4px)); }
+.bubble-arrow {
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 16px; height: 16px;
+  background: #fff;
+  border-right: 1px solid #eef1f7;
+  border-bottom: 1px solid #eef1f7;
+  transform: translateX(-50%) rotate(45deg);
+}
+.bubble-term { font-weight: 700; font-size: 15px; color: var(--accent); margin-bottom: 4px; word-break: break-word; }
+.bubble-body { font-size: 14px; line-height: 1.6; color: var(--ink); }
+.bubble-note {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.bubble-note:empty { display: none; }
+.bubble.loading .bubble-body::after {
+  content: "思考中…";
+  color: var(--muted);
+}
+
+/* 3D 机器人舞台 */
+.robot-stage {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 50;
+  width: 210px;
+  height: 228px;
+  pointer-events: none;
+}
+#robot-canvas {
+  width: 210px;
+  height: 210px;
+  display: block;
+  filter: drop-shadow(0 14px 20px rgba(31, 41, 55, 0.22));
+}
+.robot-status {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: #fff;
+  color: var(--ink);
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(31, 41, 55, 0.16);
+  transition: opacity 0.2s ease;
+}
+.robot-status.hidden { opacity: 0; }

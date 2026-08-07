@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>阅读伴侣 · PDF Reading Companion</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      阅读伴侣 <small>Reading Companion</small>
+    </div>
+    <div class="controls">
+      <label class="file-btn">
+        打开 PDF
+        <input type="file" id="file-input" accept="application/pdf" hidden />
+      </label>
+      <button id="prev-page" class="nav-btn" title="上一页">‹</button>
+      <span id="page-indicator" class="page-indicator">— / —</span>
+      <button id="next-page" class="nav-btn" title="下一页">›</button>
+      <label class="zoom">
+        缩放
+        <input type="range" id="zoom-range" min="0.6" max="2.4" step="0.2" value="1.2" />
+      </label>
+    </div>
+  </header>
+
+  <main id="viewer" class="viewer">
+    <div id="placeholder" class="placeholder">
+      <div class="placeholder-card">
+        <h1>划词，即得注释</h1>
+        <p>点击右上角「打开 PDF」，选中任意英文单词、词组或句子，<br />小机器人会立刻给出中文注释。</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- 划词注释气泡 -->
+  <div id="bubble" class="bubble hidden" role="status" aria-live="polite">
+    <div class="bubble-arrow"></div>
+    <div class="bubble-term" id="bubble-term"></div>
+    <div class="bubble-body" id="bubble-body"></div>
+    <div class="bubble-note" id="bubble-note"></div>
+  </div>
+
+  <!-- 可爱 3D 机器人形象 -->
+  <div id="robot-stage" class="robot-stage" title="你的阅读伴侣">
+    <canvas id="robot-canvas"></canvas>
+    <div id="robot-status" class="robot-status">Hi～划个词试试</div>
+  </div>
+
+  <!-- 依赖：PDF.js（渲染 + 文本层）与 Three.js（3D 机器人） -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="robot.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

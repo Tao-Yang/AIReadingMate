@@ -1,0 +1,6 @@
+# ECDICT 词典体积大（约 65MB），按需下载，不入库
+data/ecdict.csv
+
+# Python
+__pycache__/
+*.pyc
