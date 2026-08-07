@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import json
+import mimetypes
 import os
 import re
 from pathlib import Path
@@ -276,6 +277,9 @@ async def annotate(req: AnnotateRequest):
 
 
 # 网页静态资源挂在根路径，html=True 使 / 直接返回 index.html。
+# 部分精简镜像的 mimetypes 会把 .js 猜成 text/plain，显式注册避免浏览器拒绝执行。
+mimetypes.add_type("text/javascript", ".js")
+mimetypes.add_type("text/css", ".css")
 app.mount("/", StaticFiles(directory=str(WEB_DIR), html=True), name="web")
 
 
