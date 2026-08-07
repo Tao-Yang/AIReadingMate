@@ -1,0 +1,14 @@
+# Render 一键部署：Docker Web 服务
+# 在 https://render.com 选 "New + → Blueprint"，指向本仓库即可。
+services:
+  - type: web
+    name: ai-reading-mate
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      # 可选：填入后句子翻译与生僻词走大模型；不填则纯离线词典 + 演示兜底。
+      - key: OPENAI_API_KEY
+        sync: false

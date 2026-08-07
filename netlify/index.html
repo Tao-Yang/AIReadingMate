@@ -213,27 +213,11 @@
 
     <h1>A I 阅 读 伴 侣</h1>
     <div class="subtitle">划词即注 · 熊猫伴读</div>
-    <p class="desc">
-      打开英文 PDF，划选任意单词、词组或句子，
-      可爱的熊猫机器人会立刻给出符合语境的简明中文注释，
-      注释就浮在选中处旁边，陪你轻松读完英文原著。
-    </p>
-
-    <div class="features">
-      <span>离线词典（ECDICT + 历史文化词库）</span>
-      <span>3D 熊猫机器人</span>
-      <span>划词悬浮注释</span>
-    </div>
 
     <button id="enter" class="cta" type="button">进 入 应 用</button>
 
     <div class="status" id="status" aria-live="polite">
       <span class="dot" id="dot"></span><span id="statusText">准备就绪</span>
-    </div>
-
-    <div class="foot">
-      开源项目 · <a href="https://github.com/Tao-Yang/AIReadingMate" target="_blank" rel="noopener">GitHub</a>
-      ｜ Every word has a story.
     </div>
 
     <!-- 进入应用后的启动进度浮层 -->
@@ -334,7 +318,7 @@
       setStatus("warming", "正在为你唤醒应用…（约需 1 分钟）");
       setTimeout(poll, 200);
     } else {
-      setStatus("", "在 netlify/index.html 中设置 APP_URL 后即可一键进入应用。");
+      setStatus("", "");
     }
   });
 </script>
