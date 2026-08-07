@@ -3,7 +3,7 @@
 一个可独立运行的英文 PDF **动态阅读伴侣**：在网页里打开 PDF，划选任意英文单词 / 词组 / 句子，
 角落里的**可爱 3D 卡通机器人**会立刻"思考"并在选中处旁弹出中文注释气泡。
 
-注释生成规则复用同目录 skill [`pdf-reading-companion`](../SKILL.md)，
+注释生成规则复用同目录 skill [`pdf-reading-companion`](SKILL.md)，
 即静态 skill `pdf-english-fiction-annotator` 的"选词判断 + 释义生成"原则。
 
 ## 特性
@@ -55,24 +55,32 @@ python app.py
 ## 目录
 
 ```
-app/
-├── server/
-│   ├── app.py            # FastAPI：静态站点 + /api/annotate
-│   ├── dictionary.py     # ECDICT + 历史文化词库离线查询
-│   ├── download_ecdict.py# 下载 ECDICT 词典脚本
-│   └── requirements.txt
-├── data/
-│   ├── ecdict.csv        # ECDICT 词典（按需下载，不随附）
-│   └── glossaries/       # 明清历史文化词库（四套，已随附）
-│       ├── official_titles.csv
-│       ├── figures.csv
-│       ├── places.csv
-│       └── idioms.csv
-└── web/
-    ├── index.html        # 阅读器 + 机器人舞台
-    ├── styles.css        # 样式与气泡
-    ├── app.js            # PDF 渲染、划词、调后端、驱动机器人
-    └── robot.js          # Three.js 3D 卡通机器人
+.
+├── SKILL.md               # 动态阅读伴侣 skill 文档
+├── Dockerfile             # 后端镜像（Render / HF Space）
+├── render.yaml            # Render 一键部署
+├── netlify.toml           # Netlify 发布配置
+├── netlify/
+│   └── index.html         # 宜纸风落地页
+├── app/
+│   ├── server/
+│   │   ├── app.py            # FastAPI：静态站点 + /api/annotate
+│   │   ├── dictionary.py     # ECDICT + 历史文化词库离线查询
+│   │   ├── download_ecdict.py# 下载 ECDICT 词典脚本
+│   │   └── requirements.txt
+│   ├── data/
+│   │   ├── ecdict.csv        # ECDICT 词典（按需下载，不随附）
+│   │   └── glossaries/       # 明清历史文化词库（四套，已随附）
+│   │       ├── official_titles.csv
+│   │       ├── figures.csv
+│   │       ├── places.csv
+│   │       └── idioms.csv
+│   └── web/
+│       ├── index.html        # 阅读器 + 机器人舞台
+│       ├── styles.css        # 样式与气泡
+│       ├── app.js            # PDF 渲染、划词、调后端、驱动机器人
+│       └── robot.js          # Three.js 3D 卡通机器人
+└── README.md
 ```
 
 ## 说明与边界
