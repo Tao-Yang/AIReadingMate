@@ -82,26 +82,48 @@
       xhr.responseType = "arraybuffer";
       xhr.onload = () => {
         const ok = xhr.status === 0 || (xhr.status >= 200 && xhr.status < 300);
-        if (ok && xhr.response) resolve(new Uint8Array(xhr.response));
-        else reject(new Error(xhr.status ? "HTTP " + xhr.status : "空响应"));
+        if (ok && xhr.response && xhr.response.byteLength) {
+          resolve(new Uint8Array(xhr.response));
+        } else {
+          reject(new Error(xhr.status ? "HTTP " + xhr.status : "文件为空或无法读取"));
+        }
       };
-      xhr.onerror = () =>
-        reject(new Error("无法读取文件（请确认已开启「允许访问文件 URL」）"));
+      xhr.onerror = () => reject(new Error("无法读取文件（file:// 访问被拒绝）"));
       xhr.send();
     });
   }
 
+  // file:// 需要「允许访问文件 URL」开关；先自检以给出精确提示。
+  function isFileAccessAllowed() {
+    return new Promise((resolve) => {
+      try {
+        if (chrome.extension && chrome.extension.isAllowedFileSchemeAccess) {
+          chrome.extension.isAllowedFileSchemeAccess((a) => resolve(a));
+        } else {
+          resolve(null);
+        }
+      } catch (_) {
+        resolve(null);
+      }
+    });
+  }
+
   try {
+    if (fileUrl.startsWith("file:")) {
+      const allowed = await isFileAccessAllowed();
+      if (allowed === false) {
+        throw new Error(
+          "扩展尚未获得文件访问权限。请到 edge://extensions 打开本扩展详情页里的「允许访问文件 URL / Allow access to file URLs」开关，再刷新本页面"
+        );
+      }
+    }
     const data = await fetchPdfData(fileUrl);
     pdfDoc = await pdfjsLib.getDocument({ data }).promise;
     loadingEl.style.display = "none";
     await renderAll();
   } catch (e) {
     const msg = e && e.message ? e.message : String(e);
-    loadingEl.textContent =
-      "加载 PDF 失败：" +
-      msg +
-      "（若是本地文件，请到 edge://extensions 打开本扩展的「允许访问文件 URL」开关后重试）";
+    loadingEl.textContent = "加载 PDF 失败：" + msg;
     return;
   }
 
