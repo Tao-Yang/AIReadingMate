@@ -74,8 +74,26 @@
     rendering = false;
   }
 
+  // Chromium 扩展页 fetch() 读不了 file://，改用 XHR 自行取字节再交给 PDF.js。
+  function fetchPdfData(url) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("GET", url, true);
+      xhr.responseType = "arraybuffer";
+      xhr.onload = () => {
+        const ok = xhr.status === 0 || (xhr.status >= 200 && xhr.status < 300);
+        if (ok && xhr.response) resolve(new Uint8Array(xhr.response));
+        else reject(new Error(xhr.status ? "HTTP " + xhr.status : "空响应"));
+      };
+      xhr.onerror = () =>
+        reject(new Error("无法读取文件（请确认已开启「允许访问文件 URL」）"));
+      xhr.send();
+    });
+  }
+
   try {
-    pdfDoc = await pdfjsLib.getDocument({ url: fileUrl }).promise;
+    const data = await fetchPdfData(fileUrl);
+    pdfDoc = await pdfjsLib.getDocument({ data }).promise;
     loadingEl.style.display = "none";
     await renderAll();
   } catch (e) {
