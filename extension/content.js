@@ -41,7 +41,7 @@ if (!window.__readingCompanionMounted) {
     canvas = document.createElement("canvas");
     canvas.className = "rc-canvas";
     stage.appendChild(canvas);
-    statusEl = h("div", "rc-status", "Hi～复制或划选英文试试");
+    statusEl = h("div", "rc-status", "Hi～点词或划选英文试试");
     stage.appendChild(statusEl);
     panel.appendChild(stage);
 
@@ -148,6 +148,51 @@ if (!window.__readingCompanionMounted) {
     annotate(text, "");
   }
 
+  // 单击取词：定位鼠标点中的英文单词并展开到词边界
+  function getWordAtPoint(x, y) {
+    let range = null;
+    if (document.caretRangeFromPoint) {
+      range = document.caretRangeFromPoint(x, y);
+    } else if (document.caretPositionFromPoint) {
+      const pos = document.caretPositionFromPoint(x, y);
+      if (pos) {
+        range = document.createRange();
+        range.setStart(pos.offsetNode, pos.offset);
+        range.collapse(true);
+      }
+    }
+    if (!range) return null;
+    const node = range.startContainer;
+    if (!node || node.nodeType !== Node.TEXT_NODE) return null;
+    const text = node.textContent || "";
+    const isWord = (ch) => /[A-Za-z0-9'\u2019-]/.test(ch);
+    let i = Math.min(range.startOffset, text.length);
+    let start = i, end = i;
+    while (start > 0 && isWord(text[start - 1])) start--;
+    while (end < text.length && isWord(text[end])) end++;
+    if (start === end) return null;
+    const word = text.slice(start, end).trim();
+    if (!word) return null;
+    const wr = document.createRange();
+    wr.setStart(node, start);
+    wr.setEnd(node, end);
+    return { word, range: wr };
+  }
+
+  function onClickWord(e) {
+    if (!host || host.style.display === "none") return;
+    // 忽略浮层自身内部的点击
+    if (e.target === host || host.contains(e.target)) return;
+    const sel = window.getSelection();
+    if (sel && sel.toString().trim()) return; // 已划词，交给 mouseup 处理
+    const hit = getWordAtPoint(e.clientX, e.clientY);
+    if (!hit) return;
+    if (sel) { sel.removeAllRanges(); sel.addRange(hit.range); } // 高亮点中的词
+    lastSelection = hit.word;
+    input.value = hit.word;
+    annotate(hit.word, "");
+  }
+
   function toggle(force) {
     if (!host) buildUI();
     const show = force != null ? force : host.style.display === "none";
@@ -155,6 +200,7 @@ if (!window.__readingCompanionMounted) {
   }
 
   document.addEventListener("mouseup", () => setTimeout(onSelection, 0));
+  document.addEventListener("click", onClickWord);
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg && msg.type === "toggle") toggle();
   });
