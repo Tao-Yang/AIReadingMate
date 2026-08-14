@@ -93,38 +93,71 @@
     });
   }
 
-  // file:// 需要「允许访问文件 URL」开关；先自检以给出精确提示。
-  function isFileAccessAllowed() {
-    return new Promise((resolve) => {
-      try {
-        if (chrome.extension && chrome.extension.isAllowedFileSchemeAccess) {
-          chrome.extension.isAllowedFileSchemeAccess((a) => resolve(a));
-        } else {
-          resolve(null);
-        }
-      } catch (_) {
-        resolve(null);
-      }
-    });
-  }
-
-  try {
-    if (fileUrl.startsWith("file:")) {
-      const allowed = await isFileAccessAllowed();
-      if (allowed === false) {
-        throw new Error(
-          "扩展尚未获得文件访问权限。请到 edge://extensions 打开本扩展详情页里的「允许访问文件 URL / Allow access to file URLs」开关，再刷新本页面"
-        );
-      }
-    }
-    const data = await fetchPdfData(fileUrl);
+  async function renderDoc(data) {
     pdfDoc = await pdfjsLib.getDocument({ data }).promise;
     loadingEl.style.display = "none";
     await renderAll();
+  }
+
+  // 兜底：Edge 常禁止扩展页直接读 file://，让用户手动选一次文件，
+  // 用 FileReader 读取字节，完全绕开 file:// 限制。
+  function showPicker(reason) {
+    loadingEl.innerHTML = "";
+    loadingEl.style.display = "";
+    const tip = document.createElement("div");
+    tip.style.marginBottom = "12px";
+    tip.textContent = reason + " 请手动选择要阅读的 PDF：";
+    const btn = document.createElement("button");
+    btn.textContent = "选择 PDF 文件";
+    btn.style.cssText =
+      "background:#c9922e;color:#1a1a1a;border:none;border-radius:6px;padding:8px 18px;cursor:pointer;font-size:14px;";
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/pdf,.pdf";
+    input.style.display = "none";
+    btn.addEventListener("click", () => input.click());
+    input.addEventListener("change", () => {
+      const f = input.files && input.files[0];
+      if (!f) return;
+      filenameEl.textContent = f.name;
+      document.title = f.name + " · 阅读伴侣";
+      loadingEl.textContent = "正在渲染…";
+      const reader = new FileReader();
+      reader.onload = () =>
+        renderDoc(new Uint8Array(reader.result)).catch((err) => {
+          loadingEl.textContent =
+            "渲染失败：" + (err && err.message ? err.message : err);
+        });
+      reader.onerror = () => (loadingEl.textContent = "读取所选文件失败");
+      reader.readAsArrayBuffer(f);
+    });
+    loadingEl.append(tip, btn, input);
+  }
+
+  try {
+    let data = null;
+    let firstErr = "";
+    try {
+      data = await fetchPdfData(fileUrl); // XHR：http(s) 及部分 file://
+    } catch (e1) {
+      firstErr = e1 && e1.message ? e1.message : String(e1);
+      try {
+        const resp = await fetch(fileUrl); // 退一步试 fetch（http(s) 可用）
+        data = new Uint8Array(await resp.arrayBuffer());
+      } catch (_) {
+        data = null;
+      }
+    }
+    if (data && data.byteLength) {
+      await renderDoc(data);
+    } else if (fileUrl.startsWith("file:")) {
+      showPicker("无法自动读取本地文件（Edge 限制扩展直接访问 file://）。");
+    } else {
+      showPicker("无法自动读取该 PDF" + (firstErr ? "（" + firstErr + "）" : "") + "。");
+    }
   } catch (e) {
     const msg = e && e.message ? e.message : String(e);
-    loadingEl.textContent = "加载 PDF 失败：" + msg;
-    return;
+    showPicker("加载失败（" + msg + "）。");
   }
 
   document.getElementById("rc-zoom-in").addEventListener("click", () => {
