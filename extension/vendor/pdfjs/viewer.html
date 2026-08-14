@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>阅读伴侣 · PDF</title>
+  <link rel="stylesheet" href="viewer.css" />
+</head>
+<body>
+  <div id="rc-toolbar">
+    <span id="rc-filename"></span>
+    <button id="rc-zoom-out" title="缩小">A−</button>
+    <button id="rc-zoom-in" title="放大">A+</button>
+    <span id="rc-pageinfo"></span>
+  </div>
+  <div id="rc-loading">正在加载 PDF…</div>
+  <div id="rc-viewer"></div>
+
+  <!-- PDF.js -->
+  <script src="pdf.min.js"></script>
+  <script src="viewer.js"></script>
+
+  <!-- 阅读伴侣机器人浮层（点词/划词即注释） -->
+  <script src="../three.min.js"></script>
+  <script src="../../robot.js"></script>
+  <script src="../../content.js"></script>
+</body>
+</html>

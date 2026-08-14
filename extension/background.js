@@ -4,6 +4,30 @@
 
 const FILES = ["vendor/three.min.js", "robot.js", "content.js"];
 const ANNOTATE_URL = "https://ai-reading-mate.onrender.com/api/annotate";
+const VIEWER_URL = chrome.runtime.getURL("vendor/pdfjs/viewer.html");
+
+// 把 PDF 跳转接管到自带 PDF.js 查看器：内置 PDFium 不暴露文字，
+// 自带查看器把文字渲染成真实 DOM，才能点词/划词取词。
+function isPdfUrl(url) {
+  try {
+    const u = new URL(url);
+    if (u.protocol === "chrome-extension:") return false;
+    if (!["file:", "http:", "https:"].includes(u.protocol)) return false;
+    return /\.pdf$/i.test(u.pathname);
+  } catch (_) {
+    return false;
+  }
+}
+
+if (chrome.webNavigation && chrome.webNavigation.onBeforeNavigate) {
+  chrome.webNavigation.onBeforeNavigate.addListener((d) => {
+    if (d.frameId !== 0) return; // 仅接管主框架
+    if (!isPdfUrl(d.url)) return;
+    chrome.tabs.update(d.tabId, {
+      url: VIEWER_URL + "?file=" + encodeURIComponent(d.url),
+    });
+  });
+}
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg && msg.type === "annotate") {
