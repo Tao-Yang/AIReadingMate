@@ -3,7 +3,6 @@
   "name": "阅读伴侣 · PDF Reading Companion",
   "version": "1.0.0",
   "description": "点击图标唤出小机器人伴读，对浏览器中打开的 PDF 划词即得中文注释。",
-  "default_locale": "zh_CN",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
